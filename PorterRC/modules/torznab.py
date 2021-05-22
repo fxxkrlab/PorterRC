@@ -53,12 +53,14 @@ def prompt_torrent():
             prompt_torrent()
         else:
             _rC['CURRENT_PAGE'] = id
-            jump_results(int(_rC['CURRENT_PAGE']) - 1)   
+            jump_results(int(_rC['CURRENT_PAGE']))   
     if cmd.strip() == "":
         prompt_torrent()
     re_entry(cmd)
 
 def search(indexer, search_terms):
+    global SHOWED_PAGE
+    SHOWED_PAGE = []
     _rC['TORRENTS'] = []
     print(f"Searching for \"{search_terms}\"...\n")
     try:
