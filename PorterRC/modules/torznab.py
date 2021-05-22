@@ -19,7 +19,7 @@ def prompt_torrent():
         else:
             print("Search did not yield any results.")
             exit()
-    print("\nCommands: \n\t(下载) \t:download, :d ID\n\t(下一页) \t:next, :n\t\t:prev, :p\n\t(跳转至) \t:jump, :j page_num\t(重排序) \t:sort, :s sortway\n\t(退出PorterRC) \t:quit, :q\n\n\t若需继续搜索请根据规则输入内容.//e.g. -i=u2 ultraman\n\tTo search something else, just type it follow rules and press enter")
+    print("\nCommands: \n\t(下载) \t:download, :d ID\n\t(下一页) \t:next, :n\t\t(前一页) \t:prev, :p\n\t(跳转至) \t:jump, :j page_num\t(重排序) \t:sort, :s sortway\n\t(退出PorterRC) \t:quit, :q\n\n\t若需继续搜索请根据规则输入内容.//e.g. -i=u2 ultraman\n\tTo search something else, just type it follow rules and press enter")
     try:
         cmd = input("-> ")
     except Exception as e:
