@@ -23,4 +23,4 @@
     DOWNLOAD = false
     VERIFY = true
     SORT = "size"
-    SORT_LIST = ["seeders", "leechers", "size", "ratio", "description", "date"]
+    SORT_LIST = ["id", "seeders", "leechers", "size", "ratio", "description", "date", "tracker", "type"]

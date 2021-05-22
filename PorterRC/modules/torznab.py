@@ -69,6 +69,8 @@ def prompt_torrent():
             prompt_torrent()
         else:
             re_sort(torrents=_rC['TORRENTS'], sortway=RE_SORT)
+            global SHOWED_PAGE
+            SHOWED_PAGE = []
             # Display results
             _rC['CURRENT_PAGE'] = 1
             display_results(int(_rC['CURRENT_PAGE']))
@@ -110,7 +112,7 @@ def search(indexer, search_terms):
             r['Title'] = r['Title'][0:int(_rC['DESC_LENGTH'])]
             print(r['Title'])
         download_url = r['MagnetUri'] if r['MagnetUri'] else r['Link']
-        _rC['TORRENTS'].append(torrent(id, r['Title'].encode('unicode_escape').decode('ascii'), r['CategoryDesc'], r['Tracker'], r['Seeders'], r['Peers'], download_url, r['Size'], r['PublishDate']))
+        _rC['TORRENTS'].append(torrent(id, r['Title'].encode('unicode_escape').decode('ascii'), r['CategoryDesc'], r['Tracker'], r['Seeders'], r['Peers'], download_url, r['Size'], r['PublishDate'], None))
         id += 1    
 
     # Sort torrents array
@@ -133,8 +135,8 @@ def display_results(page):
     for tor in _rC['TORRENTS'][slice_index:]:
         if count >= int(_rC['RESULTS_LIMIT']):
             break
-        tor.size = "{:.2f}".format(float(tor.size)/1000000)
-        display_table.append([tor.id, tor.description.encode('ascii').decode('unicode_escape'), tor.media_type, tor.tracker, tor.date, f"{tor.size}GB", tor.seeders, tor.leechers, tor.ratio])
+        tor.showsize = "{:.2f}".format(float(tor.size)/1000000)
+        display_table.append([tor.id, tor.description.encode('ascii').decode('unicode_escape'), tor.media_type, tor.tracker, tor.date, f"{tor.showsize}GB", tor.seeders, tor.leechers, tor.ratio])
         count += 1
     print(tabulate(display_table, headers=[    
           "ID", "Description", "Type", "Tracker", "Published Date", "Size", "Seeders", "Leechers", "Ratio"], floatfmt=".2f", tablefmt=_rC['DISPLAY']))
@@ -154,11 +156,10 @@ def prev_results(page):
     for tor in _rC['TORRENTS'][slice_index:]:
         if count >= int(_rC['RESULTS_LIMIT']):
             break
-        display_table.append([tor.id, tor.description.encode('ascii').decode('unicode_escape'), tor.media_type, tor.tracker,
-                              f"{tor.size}GB", tor.seeders, tor.leechers, tor.ratio])
+        display_table.append([tor.id, tor.description.encode('ascii').decode('unicode_escape'), tor.media_type, tor.tracker, tor.date, f"{tor.showsize}GB", tor.seeders, tor.leechers, tor.ratio])
         count += 1
     print(tabulate(display_table, headers=[    
-          "ID", "Description", "Type", "Tracker", "Size", "Seeders", "Leechers", "Ratio"], floatfmt=".2f", tablefmt=_rC['DISPLAY']))
+          "ID", "Description", "Type", "Tracker", "Published Date", "Size", "Seeders", "Leechers", "Ratio"], floatfmt=".2f", tablefmt=_rC['DISPLAY']))
     print(f"\nShowing page {_rC['CURRENT_PAGE']} - ({count * _rC['CURRENT_PAGE']} of {len(_rC['TORRENTS'])} results), limit is set to {_rC['RESULTS_LIMIT']}")
     prompt_torrent()
 
@@ -175,12 +176,11 @@ def jump_results(page):
         for tor in _rC['TORRENTS'][slice_index:]:
             if count >= int(_rC['RESULTS_LIMIT']):
                 break
-            tor.size = "{:.2f}".format(float(tor.size)/1000000)
-            display_table.append([tor.id, tor.description.encode('ascii').decode('unicode_escape'), tor.media_type, tor.tracker,
-                                f"{tor.size}GB", tor.seeders, tor.leechers, tor.ratio])
+            tor.showsize = "{:.2f}".format(float(tor.size)/1000000)
+            display_table.append([tor.id, tor.description.encode('ascii').decode('unicode_escape'), tor.media_type, tor.tracker, tor.date, f"{tor.showsize}GB", tor.seeders, tor.leechers, tor.ratio])
             count += 1
         print(tabulate(display_table, headers=[    
-            "ID", "Description", "Type", "Tracker", "Size", "Seeders", "Leechers", "Ratio"], floatfmt=".2f", tablefmt=_rC['DISPLAY']))
+            "ID", "Description", "Type", "Tracker", "Published Date", "Size", "Seeders", "Leechers", "Ratio"], floatfmt=".2f", tablefmt=_rC['DISPLAY']))
         print(f"\nShowing page {_rC['CURRENT_PAGE']} - ({count * _rC['CURRENT_PAGE']} of {len(_rC['TORRENTS'])} results), limit is set to {_rC['RESULTS_LIMIT']}")
         prompt_torrent()
     else:
@@ -189,11 +189,10 @@ def jump_results(page):
         for tor in _rC['TORRENTS'][slice_index:]:
             if count >= int(_rC['RESULTS_LIMIT']):
                 break
-            display_table.append([tor.id, tor.description.encode('ascii').decode('unicode_escape'), tor.media_type, tor.tracker,
-                                f"{tor.size}GB", tor.seeders, tor.leechers, tor.ratio])
+            display_table.append([tor.id, tor.description.encode('ascii').decode('unicode_escape'), tor.media_type, tor.tracker, tor.date, f"{tor.showsize}GB", tor.seeders, tor.leechers, tor.ratio])
             count += 1
         print(tabulate(display_table, headers=[    
-            "ID", "Description", "Type", "Tracker", "Size", "Seeders", "Leechers", "Ratio"], floatfmt=".2f", tablefmt=_rC['DISPLAY']))
+            "ID", "Description", "Type", "Tracker", "Published Date", "Size", "Seeders", "Leechers", "Ratio"], floatfmt=".2f", tablefmt=_rC['DISPLAY']))
         print(f"\nShowing page {_rC['CURRENT_PAGE']} - ({count * _rC['CURRENT_PAGE']} of {len(_rC['TORRENTS'])} results), limit is set to {_rC['RESULTS_LIMIT']}")
         prompt_torrent()
 
@@ -224,6 +223,12 @@ def sort_torrents(torrents):
         return torrents.sort(key=lambda x: x.description, reverse=True)
     if _rC['SORT'] == "date":
         return torrents.sort(key=lambda x: x.date, reverse=True)
+    if _rC['SORT'] == "id":
+        return torrents.sort(key=lambda x: x.id, reverse=False)
+    if _rC['SORT'] == "tracker":
+        return torrents.sort(key=lambda x: x.tracker, reverse=True)
+    if _rC['SORT'] == "type":
+        return torrents.sort(key=lambda x: x.media_type, reverse=True)
 
 def re_entry(cmd):
     if cmd.startswith("-i="):
@@ -248,3 +253,9 @@ def re_sort(torrents, sortway):
         return torrents.sort(key=lambda x: x.description, reverse=True)
     if sortway == "date":
         return torrents.sort(key=lambda x: x.date, reverse=True)
+    if sortway == "id":
+        return torrents.sort(key=lambda x: x.id, reverse=False)
+    if sortway == "tracker":
+        return torrents.sort(key=lambda x: x.tracker, reverse=True)
+    if sortway == "type":
+        return torrents.sort(key=lambda x: x.media_type, reverse=True)

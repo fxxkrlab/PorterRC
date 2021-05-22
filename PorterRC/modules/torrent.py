@@ -9,7 +9,7 @@ _rC = load._cfg['extension']['rss_catcher']
 LOG = load.logger
 
 class torrent:
-    def __init__(self, id, description, media_type, tracker, seeders, leechers, download, size, date):
+    def __init__(self, id, description, media_type, tracker, seeders, leechers, download, size, date, showsize):
         self.id = id
         self.media_type = media_type
         self.tracker = tracker
@@ -23,6 +23,7 @@ class torrent:
             self.ratio = self.seeders
         self.size = size / 1000
         self.date = date
+        self.showsize = showsize
 
 def filter_out(title, exclusions):
     exclusions = exclusions.split()
