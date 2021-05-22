@@ -1,4 +1,4 @@
-import json,requests
+import sys, json, requests
 from tabulate import tabulate
 
 from . import load, torrent
@@ -42,13 +42,13 @@ def prompt_torrent():
         prev_results(_rC['CURRENT_PAGE'] - 1)        
     if cmd.strip() == "":
         prompt_torrent()
-    search(cmd)
+    re_entry(cmd)
 
-def search(search_terms):
+def search(indexer, search_terms):
     _rC['TORRENTS'] = []
     print(f"Searching for \"{search_terms}\"...\n")
     try:
-        url = f"{_rC['JACKETT_URL']}/api/v2.0/indexers/{_rC['JACKETT_INDEXER']}/results?apikey={_rC['APIKEY']}&Query={search_terms}"
+        url = f"{_rC['JACKETT_URL']}/api/v2.0/indexers/{indexer}/results?apikey={_rC['APIKEY']}&Query={search_terms}"
         r = requests.get(url, verify=_rC['VERIFY'])
         LOG.debug(f"Request made to: {url}")
         LOG.debug(f"{str(r.status_code)}: {r.reason}")
@@ -146,3 +146,13 @@ def sort_torrents(torrents):
         return torrents.sort(key=lambda x: x.ratio, reverse=True)
     if _rC['SORT'] == "description":
         return torrents.sort(key=lambda x: x.description, reverse=True)
+
+def re_entry(cmd):
+    if cmd.startswith("-i="):
+        indexer = cmd.split(" ")[0][3:]
+        name = cmd.lstrip(cmd.split(" ")[0]).strip(" ")
+    else:
+        indexer = _rC['JACKETT_INDEXER']
+        name = cmd
+    
+    search(indexer=indexer, search_terms=name)
