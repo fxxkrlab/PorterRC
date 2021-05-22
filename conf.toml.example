@@ -1,0 +1,25 @@
+[Servers]
+[Servers.server]
+        # SERVER
+        CONSOLE = "DEBUG" # console log level
+        LOG = true # true / false
+
+[extension.rss_catcher]
+    TORRENTS = []
+    APIKEY = ""
+    JACKETT_URL = ""
+    JACKETT_INDEXER = "all"
+    DESC_LENGTH = "100"
+    EXCLUDE = "ifyouwanttoexcludesomething"
+    RESULTS_LIMIT = "10"
+    CLIENT_URL = ""
+    DISPLAY = "grid"
+    TOR_CLIENT = "qbittorrent"
+    TOR_CLIENT_USER = "admin"
+    TOR_CLIENT_PW = ""
+    DOWNLOAD_DIR = ""
+    CURRENT_PAGE = 0
+    VERBOSE_MODE = true
+    DOWNLOAD = false
+    VERIFY = true
+    SORT = "size"
