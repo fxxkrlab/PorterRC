@@ -7,8 +7,6 @@ from .helpers import get_torrent_by_id, fetch_torrent_url
 
 _rC = load._cfg['extension']['rss_catcher']
 LOG = load.logger
-import sys
-print(sys.getdefaultencoding())
 
 def prompt_torrent():
     if _rC['DOWNLOAD']:
@@ -47,6 +45,7 @@ def prompt_torrent():
     search(cmd)
 
 def search(search_terms):
+    _rC['TORRENTS'] = []
     print(f"Searching for \"{search_terms}\"...\n")
     try:
         url = f"{_rC['JACKETT_URL']}/api/v2.0/indexers/{_rC['JACKETT_INDEXER']}/results?apikey={_rC['APIKEY']}&Query={search_terms}"
