@@ -7,7 +7,8 @@ from .helpers import get_torrent_by_id, fetch_torrent_url
 
 _rC = load._cfg['extension']['rss_catcher']
 LOG = load.logger
-
+import sys
+print(sys.getdefaultencoding())
 
 def prompt_torrent():
     if _rC['DOWNLOAD']:
@@ -73,9 +74,9 @@ def search(search_terms):
             continue
         if len(r['Title']) > int(_rC['DESC_LENGTH']):
             r['Title'] = r['Title'][0:int(_rC['DESC_LENGTH'])]
+            print(r['Title'])
         download_url = r['MagnetUri'] if r['MagnetUri'] else r['Link']
-        _rC['TORRENTS'].append(torrent(id, r['Title'].encode(
-            'ascii', errors='ignore'), r['CategoryDesc'], r['Tracker'], r['Seeders'], r['Peers'], download_url, r['Size']))
+        _rC['TORRENTS'].append(torrent(id, r['Title'].encode('unicode_escape').decode('ascii'), r['CategoryDesc'], r['Tracker'], r['Seeders'], r['Peers'], download_url, r['Size']))
         id += 1    
 
     # Sort torrents array
@@ -96,12 +97,13 @@ def display_results(page):
         if count >= int(_rC['RESULTS_LIMIT']):
             break
         tor.size = "{:.2f}".format(float(tor.size)/1000000)
-        display_table.append([tor.id, tor.description, tor.media_type, tor.tracker,
+        display_table.append([tor.id, tor.description.encode('ascii').decode('unicode_escape'), tor.media_type, tor.tracker,
                               f"{tor.size}GB", tor.seeders, tor.leechers, tor.ratio])
         count += 1
     print(tabulate(display_table, headers=[    
           "ID", "Description", "Type", "Tracker", "Size", "Seeders", "Leechers", "Ratio"], floatfmt=".2f", tablefmt=_rC['DISPLAY']))
-    print(f"\nShowing page {_rC['CURRENT_PAGE']} - ({count * _rC['CURRENT_PAGE']} of {len(_rC['TORRENTS'])} results), limit is set to {_rC['RESULTS_LIMIT']}")    
+    print(f"\nShowing page {_rC['CURRENT_PAGE']} - ({count * _rC['CURRENT_PAGE']} of {len(_rC['TORRENTS'])} results), limit is set to {_rC['RESULTS_LIMIT']}")
+    print(len("[韩剧][窥探][Mouse.2021.Complete.1080p.WEB-DL.H264.AAC-Kui"))
     prompt_torrent()
 
 def download(id):
