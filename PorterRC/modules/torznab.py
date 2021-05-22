@@ -9,6 +9,7 @@ _rC = load._cfg['extension']['rss_catcher']
 LOG = load.logger
 
 SHOWED_PAGE = []
+RE_SORT = None
 
 def prompt_torrent():
     if _rC['DOWNLOAD']:
@@ -42,6 +43,7 @@ def prompt_torrent():
         display_results(_rC['CURRENT_PAGE'] + 1)
     if cmd.startswith(":prev") or cmd.startswith(":p"):
         prev_results(_rC['CURRENT_PAGE'] - 1)
+
     if cmd.startswith(":jump") or cmd.startswith(":j"):
         if len(cmd.split()) < 2:
             print("Invalid input")
@@ -53,7 +55,24 @@ def prompt_torrent():
             prompt_torrent()
         else:
             _rC['CURRENT_PAGE'] = id
-            jump_results(int(_rC['CURRENT_PAGE']))   
+            jump_results(int(_rC['CURRENT_PAGE']))
+
+    if cmd.startswith(":sort") or cmd.startswith(":s"):
+        global RE_SORT
+        if len(cmd.split()) < 2:
+            print("Invalid input")
+            prompt_torrent()
+        RE_SORT = cmd.split()[1]
+        if RE_SORT not in _rC['SORT_LIST']:
+            print(f"Not a vaild SORT object.({RE_SORT})")
+            LOG.warning(f"Not a vaild SORT object.({RE_SORT}). We were expecting an integer.")
+            prompt_torrent()
+        else:
+            re_sort(torrents=_rC['TORRENTS'], sortway=RE_SORT)
+            # Display results
+            _rC['CURRENT_PAGE'] = 1
+            display_results(int(_rC['CURRENT_PAGE']))
+            
     if cmd.strip() == "":
         prompt_torrent()
     re_entry(cmd)
@@ -91,7 +110,7 @@ def search(indexer, search_terms):
             r['Title'] = r['Title'][0:int(_rC['DESC_LENGTH'])]
             print(r['Title'])
         download_url = r['MagnetUri'] if r['MagnetUri'] else r['Link']
-        _rC['TORRENTS'].append(torrent(id, r['Title'].encode('unicode_escape').decode('ascii'), r['CategoryDesc'], r['Tracker'], r['Seeders'], r['Peers'], download_url, r['Size']))
+        _rC['TORRENTS'].append(torrent(id, r['Title'].encode('unicode_escape').decode('ascii'), r['CategoryDesc'], r['Tracker'], r['Seeders'], r['Peers'], download_url, r['Size'], r['PublishDate']))
         id += 1    
 
     # Sort torrents array
@@ -115,11 +134,10 @@ def display_results(page):
         if count >= int(_rC['RESULTS_LIMIT']):
             break
         tor.size = "{:.2f}".format(float(tor.size)/1000000)
-        display_table.append([tor.id, tor.description.encode('ascii').decode('unicode_escape'), tor.media_type, tor.tracker,
-                              f"{tor.size}GB", tor.seeders, tor.leechers, tor.ratio])
+        display_table.append([tor.id, tor.description.encode('ascii').decode('unicode_escape'), tor.media_type, tor.tracker, tor.date, f"{tor.size}GB", tor.seeders, tor.leechers, tor.ratio])
         count += 1
     print(tabulate(display_table, headers=[    
-          "ID", "Description", "Type", "Tracker", "Size", "Seeders", "Leechers", "Ratio"], floatfmt=".2f", tablefmt=_rC['DISPLAY']))
+          "ID", "Description", "Type", "Tracker", "Published Date", "Size", "Seeders", "Leechers", "Ratio"], floatfmt=".2f", tablefmt=_rC['DISPLAY']))
     print(f"\nShowing page {_rC['CURRENT_PAGE']} - ({count * _rC['CURRENT_PAGE']} of {len(_rC['TORRENTS'])} results), limit is set to {_rC['RESULTS_LIMIT']}")
     prompt_torrent()
 
@@ -204,6 +222,8 @@ def sort_torrents(torrents):
         return torrents.sort(key=lambda x: x.ratio, reverse=True)
     if _rC['SORT'] == "description":
         return torrents.sort(key=lambda x: x.description, reverse=True)
+    if _rC['SORT'] == "date":
+        return torrents.sort(key=lambda x: x.date, reverse=True)
 
 def re_entry(cmd):
     if cmd.startswith("-i="):
@@ -214,3 +234,17 @@ def re_entry(cmd):
         name = cmd
     
     search(indexer=indexer, search_terms=name)
+
+def re_sort(torrents, sortway):
+    if sortway == "seeders":
+        return torrents.sort(key=lambda x: x.seeders, reverse=True)
+    if sortway == "leechers":
+        return torrents.sort(key=lambda x: x.leechers, reverse=True)        
+    if sortway == "size":
+        return torrents.sort(key=lambda x: x.size, reverse=True)
+    if sortway == "ratio":
+        return torrents.sort(key=lambda x: x.ratio, reverse=True)
+    if sortway == "description":
+        return torrents.sort(key=lambda x: x.description, reverse=True)
+    if sortway == "date":
+        return torrents.sort(key=lambda x: x.date, reverse=True)
