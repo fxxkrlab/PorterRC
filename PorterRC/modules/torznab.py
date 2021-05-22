@@ -41,7 +41,7 @@ def prompt_torrent():
     if cmd.startswith(":next") or cmd.startswith(":n"):
         display_results(_rC['CURRENT_PAGE'] + 1)
     if cmd.startswith(":prev") or cmd.startswith(":p"):
-        display_results(_rC['CURRENT_PAGE'] - 1)        
+        prev_results(_rC['CURRENT_PAGE'] - 1)        
     if cmd.strip() == "":
         prompt_torrent()
     search(cmd)
@@ -103,7 +103,24 @@ def display_results(page):
     print(tabulate(display_table, headers=[    
           "ID", "Description", "Type", "Tracker", "Size", "Seeders", "Leechers", "Ratio"], floatfmt=".2f", tablefmt=_rC['DISPLAY']))
     print(f"\nShowing page {_rC['CURRENT_PAGE']} - ({count * _rC['CURRENT_PAGE']} of {len(_rC['TORRENTS'])} results), limit is set to {_rC['RESULTS_LIMIT']}")
-    print(len("[韩剧][窥探][Mouse.2021.Complete.1080p.WEB-DL.H264.AAC-Kui"))
+    prompt_torrent()
+
+def prev_results(page):
+    display_table = []
+    if page < 1:
+        prompt_torrent()    
+    _rC['CURRENT_PAGE'] = page
+    count = 0
+    slice_index = (int(_rC['CURRENT_PAGE']) - 1) * int(_rC['RESULTS_LIMIT'])
+    for tor in _rC['TORRENTS'][slice_index:]:
+        if count >= int(_rC['RESULTS_LIMIT']):
+            break
+        display_table.append([tor.id, tor.description.encode('ascii').decode('unicode_escape'), tor.media_type, tor.tracker,
+                              f"{tor.size}GB", tor.seeders, tor.leechers, tor.ratio])
+        count += 1
+    print(tabulate(display_table, headers=[    
+          "ID", "Description", "Type", "Tracker", "Size", "Seeders", "Leechers", "Ratio"], floatfmt=".2f", tablefmt=_rC['DISPLAY']))
+    print(f"\nShowing page {_rC['CURRENT_PAGE']} - ({count * _rC['CURRENT_PAGE']} of {len(_rC['TORRENTS'])} results), limit is set to {_rC['RESULTS_LIMIT']}")
     prompt_torrent()
 
 def download(id):
