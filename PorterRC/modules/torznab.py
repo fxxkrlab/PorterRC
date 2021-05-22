@@ -8,6 +8,8 @@ from .helpers import get_torrent_by_id, fetch_torrent_url
 _rC = load._cfg['extension']['rss_catcher']
 LOG = load.logger
 
+SHOWED_PAGE = []
+
 def prompt_torrent():
     if _rC['DOWNLOAD']:
         if len(_rC['TORRENTS']) > 0:
@@ -39,7 +41,19 @@ def prompt_torrent():
     if cmd.startswith(":next") or cmd.startswith(":n"):
         display_results(_rC['CURRENT_PAGE'] + 1)
     if cmd.startswith(":prev") or cmd.startswith(":p"):
-        prev_results(_rC['CURRENT_PAGE'] - 1)        
+        prev_results(_rC['CURRENT_PAGE'] - 1)
+    if cmd.startswith(":jump") or cmd.startswith(":j"):
+        if len(cmd.split()) < 2:
+            print("Invalid input")
+            prompt_torrent()
+        id = cmd.split()[1]
+        if not id.isdigit():
+            print(f"Not a valid id.({id})")
+            LOG.warning(f"Not a valid id.({id}). We were expecting an integer.")
+            prompt_torrent()
+        else:
+            _rC['CURRENT_PAGE'] = id
+            jump_results(int(_rC['CURRENT_PAGE']) - 1)   
     if cmd.strip() == "":
         prompt_torrent()
     re_entry(cmd)
@@ -90,6 +104,9 @@ def display_results(page):
     if page < 1:
         prompt_torrent()    
     _rC['CURRENT_PAGE'] = page
+    global SHOWED_PAGE
+    if _rC['CURRENT_PAGE'] not in SHOWED_PAGE:
+        SHOWED_PAGE.append(_rC['CURRENT_PAGE'])
     count = 0
     slice_index = (int(_rC['CURRENT_PAGE']) - 1) * int(_rC['RESULTS_LIMIT'])
     for tor in _rC['TORRENTS'][slice_index:]:
@@ -109,6 +126,9 @@ def prev_results(page):
     if page < 1:
         prompt_torrent()    
     _rC['CURRENT_PAGE'] = page
+    global SHOWED_PAGE
+    if _rC['CURRENT_PAGE'] not in SHOWED_PAGE:
+        SHOWED_PAGE.append(_rC['CURRENT_PAGE'])
     count = 0
     slice_index = (int(_rC['CURRENT_PAGE']) - 1) * int(_rC['RESULTS_LIMIT'])
     for tor in _rC['TORRENTS'][slice_index:]:
@@ -121,6 +141,42 @@ def prev_results(page):
           "ID", "Description", "Type", "Tracker", "Size", "Seeders", "Leechers", "Ratio"], floatfmt=".2f", tablefmt=_rC['DISPLAY']))
     print(f"\nShowing page {_rC['CURRENT_PAGE']} - ({count * _rC['CURRENT_PAGE']} of {len(_rC['TORRENTS'])} results), limit is set to {_rC['RESULTS_LIMIT']}")
     prompt_torrent()
+
+def jump_results(page):
+    display_table = []
+    if page < 1:
+        prompt_torrent()    
+    _rC['CURRENT_PAGE'] = page
+    global SHOWED_PAGE
+    if _rC['CURRENT_PAGE'] not in SHOWED_PAGE:
+        SHOWED_PAGE.append(_rC['CURRENT_PAGE'])
+        count = 0
+        slice_index = (int(_rC['CURRENT_PAGE']) - 1) * int(_rC['RESULTS_LIMIT'])
+        for tor in _rC['TORRENTS'][slice_index:]:
+            if count >= int(_rC['RESULTS_LIMIT']):
+                break
+            tor.size = "{:.2f}".format(float(tor.size)/1000000)
+            display_table.append([tor.id, tor.description.encode('ascii').decode('unicode_escape'), tor.media_type, tor.tracker,
+                                f"{tor.size}GB", tor.seeders, tor.leechers, tor.ratio])
+            count += 1
+        print(tabulate(display_table, headers=[    
+            "ID", "Description", "Type", "Tracker", "Size", "Seeders", "Leechers", "Ratio"], floatfmt=".2f", tablefmt=_rC['DISPLAY']))
+        print(f"\nShowing page {_rC['CURRENT_PAGE']} - ({count * _rC['CURRENT_PAGE']} of {len(_rC['TORRENTS'])} results), limit is set to {_rC['RESULTS_LIMIT']}")
+        prompt_torrent()
+    else:
+        count = 0
+        slice_index = (int(_rC['CURRENT_PAGE']) - 1) * int(_rC['RESULTS_LIMIT'])
+        for tor in _rC['TORRENTS'][slice_index:]:
+            if count >= int(_rC['RESULTS_LIMIT']):
+                break
+            display_table.append([tor.id, tor.description.encode('ascii').decode('unicode_escape'), tor.media_type, tor.tracker,
+                                f"{tor.size}GB", tor.seeders, tor.leechers, tor.ratio])
+            count += 1
+        print(tabulate(display_table, headers=[    
+            "ID", "Description", "Type", "Tracker", "Size", "Seeders", "Leechers", "Ratio"], floatfmt=".2f", tablefmt=_rC['DISPLAY']))
+        print(f"\nShowing page {_rC['CURRENT_PAGE']} - ({count * _rC['CURRENT_PAGE']} of {len(_rC['TORRENTS'])} results), limit is set to {_rC['RESULTS_LIMIT']}")
+        prompt_torrent()
+
 
 def download(id):
     torrent = get_torrent_by_id(_rC['TORRENTS'], id)
@@ -149,7 +205,7 @@ def sort_torrents(torrents):
 
 def re_entry(cmd):
     if cmd.startswith("-i="):
-        indexer = cmd.split(" ")[0][3:]
+        indexer = cmd.split(" ")[0][3:].lower()
         name = cmd.lstrip(cmd.split(" ")[0]).strip(" ")
     else:
         indexer = _rC['JACKETT_INDEXER']

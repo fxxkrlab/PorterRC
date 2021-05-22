@@ -5,7 +5,7 @@ _rC = load._cfg['extension']['rss_catcher']
 
 def main():
     if sys.argv[1].startswith("-i="):
-        indexer = sys.argv[1][3:]
+        indexer = sys.argv[1][3:].lower()
         name=sys.argv[2]
     else:
         indexer = _rC['JACKETT_INDEXER']
