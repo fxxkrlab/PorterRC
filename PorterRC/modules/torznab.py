@@ -1,4 +1,4 @@
-import sys, json, requests
+import json, requests
 from tabulate import tabulate
 
 from . import load, torrent

@@ -1,6 +1,4 @@
 import os, logging, toml
-from telegram.utils.request import Request as TGRequest
-from telegram import Bot
 
 _cfgFile_RAW = os.path.abspath(os.path.join("conf.toml"))
 _cfg = toml.load(_cfgFile_RAW)
