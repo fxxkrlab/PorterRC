@@ -128,48 +128,9 @@ def display_results(page):
         prompt_torrent()    
     _rC['CURRENT_PAGE'] = page
     global SHOWED_PAGE
-    if _rC['CURRENT_PAGE'] not in SHOWED_PAGE:
-        SHOWED_PAGE.append(_rC['CURRENT_PAGE'])
-    count = 0
-    slice_index = (int(_rC['CURRENT_PAGE']) - 1) * int(_rC['RESULTS_LIMIT'])
-    for tor in _rC['TORRENTS'][slice_index:]:
-        if count >= int(_rC['RESULTS_LIMIT']):
-            break
-        tor.showsize = "{:.2f}".format(float(tor.size)/1000000)
-        display_table.append([tor.id, tor.description.encode('ascii').decode('unicode_escape'), tor.media_type, tor.tracker, tor.date, f"{tor.showsize}GB", tor.seeders, tor.leechers, tor.ratio])
-        count += 1
-    print(tabulate(display_table, headers=[    
-          "ID", "Description", "Type", "Tracker", "Published Date", "Size", "Seeders", "Leechers", "Ratio"], floatfmt=".2f", tablefmt=_rC['DISPLAY']))
-    print(f"\nShowing page {_rC['CURRENT_PAGE']} - ({count * _rC['CURRENT_PAGE']} of {len(_rC['TORRENTS'])} results), limit is set to {_rC['RESULTS_LIMIT']}")
-    prompt_torrent()
-
-def prev_results(page):
-    display_table = []
-    if page < 1:
-        prompt_torrent()    
-    _rC['CURRENT_PAGE'] = page
-    global SHOWED_PAGE
-    if _rC['CURRENT_PAGE'] not in SHOWED_PAGE:
-        SHOWED_PAGE.append(_rC['CURRENT_PAGE'])
-    count = 0
-    slice_index = (int(_rC['CURRENT_PAGE']) - 1) * int(_rC['RESULTS_LIMIT'])
-    for tor in _rC['TORRENTS'][slice_index:]:
-        if count >= int(_rC['RESULTS_LIMIT']):
-            break
-        display_table.append([tor.id, tor.description.encode('ascii').decode('unicode_escape'), tor.media_type, tor.tracker, tor.date, f"{tor.showsize}GB", tor.seeders, tor.leechers, tor.ratio])
-        count += 1
-    print(tabulate(display_table, headers=[    
-          "ID", "Description", "Type", "Tracker", "Published Date", "Size", "Seeders", "Leechers", "Ratio"], floatfmt=".2f", tablefmt=_rC['DISPLAY']))
-    print(f"\nShowing page {_rC['CURRENT_PAGE']} - ({count * _rC['CURRENT_PAGE']} of {len(_rC['TORRENTS'])} results), limit is set to {_rC['RESULTS_LIMIT']}")
-    prompt_torrent()
-
-def jump_results(page):
-    display_table = []
-    if page < 1:
-        prompt_torrent()    
-    _rC['CURRENT_PAGE'] = page
-    global SHOWED_PAGE
-    if _rC['CURRENT_PAGE'] not in SHOWED_PAGE:
+    if (_rC['CURRENT_PAGE'] in SHOWED_PAGE):
+        prev_results(page)
+    else:
         SHOWED_PAGE.append(_rC['CURRENT_PAGE'])
         count = 0
         slice_index = (int(_rC['CURRENT_PAGE']) - 1) * int(_rC['RESULTS_LIMIT'])
@@ -183,12 +144,55 @@ def jump_results(page):
             "ID", "Description", "Type", "Tracker", "Published Date", "Size", "Seeders", "Leechers", "Ratio"], floatfmt=".2f", tablefmt=_rC['DISPLAY']))
         print(f"\nShowing page {_rC['CURRENT_PAGE']} - ({count * _rC['CURRENT_PAGE']} of {len(_rC['TORRENTS'])} results), limit is set to {_rC['RESULTS_LIMIT']}")
         prompt_torrent()
-    else:
+
+
+def prev_results(page):
+    display_table = []
+    if page < 1:
+        prompt_torrent()    
+    _rC['CURRENT_PAGE'] = page
+    global SHOWED_PAGE
+    if (_rC['CURRENT_PAGE'] in SHOWED_PAGE):
         count = 0
         slice_index = (int(_rC['CURRENT_PAGE']) - 1) * int(_rC['RESULTS_LIMIT'])
         for tor in _rC['TORRENTS'][slice_index:]:
             if count >= int(_rC['RESULTS_LIMIT']):
                 break
+            display_table.append([tor.id, tor.description.encode('ascii').decode('unicode_escape'), tor.media_type, tor.tracker, tor.date, f"{tor.showsize}GB", tor.seeders, tor.leechers, tor.ratio])
+            count += 1
+        print(tabulate(display_table, headers=[    
+            "ID", "Description", "Type", "Tracker", "Published Date", "Size", "Seeders", "Leechers", "Ratio"], floatfmt=".2f", tablefmt=_rC['DISPLAY']))
+        print(f"\nShowing page {_rC['CURRENT_PAGE']} - ({count * _rC['CURRENT_PAGE']} of {len(_rC['TORRENTS'])} results), limit is set to {_rC['RESULTS_LIMIT']}")
+        prompt_torrent()
+    else:
+        display_results(page)
+
+def jump_results(page):
+    display_table = []
+    if page < 1:
+        prompt_torrent()    
+    _rC['CURRENT_PAGE'] = page
+    global SHOWED_PAGE
+    if (_rC['CURRENT_PAGE'] in SHOWED_PAGE):
+        count = 0
+        slice_index = (int(_rC['CURRENT_PAGE']) - 1) * int(_rC['RESULTS_LIMIT'])
+        for tor in _rC['TORRENTS'][slice_index:]:
+            if count >= int(_rC['RESULTS_LIMIT']):
+                break
+            display_table.append([tor.id, tor.description.encode('ascii').decode('unicode_escape'), tor.media_type, tor.tracker, tor.date, f"{tor.showsize}GB", tor.seeders, tor.leechers, tor.ratio])
+            count += 1
+        print(tabulate(display_table, headers=[    
+            "ID", "Description", "Type", "Tracker", "Published Date", "Size", "Seeders", "Leechers", "Ratio"], floatfmt=".2f", tablefmt=_rC['DISPLAY']))
+        print(f"\nShowing page {_rC['CURRENT_PAGE']} - ({count * _rC['CURRENT_PAGE']} of {len(_rC['TORRENTS'])} results), limit is set to {_rC['RESULTS_LIMIT']}")
+        prompt_torrent()
+    else:
+        SHOWED_PAGE.append(_rC['CURRENT_PAGE'])
+        count = 0
+        slice_index = (int(_rC['CURRENT_PAGE']) - 1) * int(_rC['RESULTS_LIMIT'])
+        for tor in _rC['TORRENTS'][slice_index:]:
+            if count >= int(_rC['RESULTS_LIMIT']):
+                break
+            tor.showsize = "{:.2f}".format(float(tor.size)/1000000)
             display_table.append([tor.id, tor.description.encode('ascii').decode('unicode_escape'), tor.media_type, tor.tracker, tor.date, f"{tor.showsize}GB", tor.seeders, tor.leechers, tor.ratio])
             count += 1
         print(tabulate(display_table, headers=[    
